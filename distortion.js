@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let source = null;
   let distortionNode = null;
   let gainNode = null;
+  let highpassFilter = null;
   let isDistorting = false;
 
   const distortionSlider = document.getElementById('distortionSlider');
@@ -11,17 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fonction pour créer l'AudioContext et les nodes nécessaires
   async function createAudioContext() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
     gainNode = audioContext.createGain();
     distortionNode = audioContext.createWaveShaper();
+    highpassFilter = audioContext.createBiquadFilter();
+    highpassFilter.type = 'highpass';
+    highpassFilter.frequency.value = 150; // Filtrer les basses fréquences en dessous de 150 Hz
 
-    // Fonction de distorsion simple
+    // Fonction de distorsion plus intense pour un effet grunge
     function makeDistortionCurve(amount) {
+      const k = amount * 100;
       const n_samples = 44100;
       const curve = new Float32Array(n_samples);
       const deg = Math.PI / 180;
       for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
-        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
       }
       return curve;
     }
@@ -33,12 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Configurer la distorsion
       distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
-      distortionNode.oversample = '4x'; // Surchantillonnage pour un son plus précis
+      distortionNode.oversample = '4x'; // Surchantillonnage pour un son plus lisse
 
-      // Connecter la source -> distorsion -> gain -> sortie
+      // Connecter la source -> distorsion -> filtre -> gain -> sortie
       source.connect(distortionNode);
-      distortionNode.connect(gainNode);
+      distortionNode.connect(highpassFilter);
+      highpassFilter.connect(gainNode);
       gainNode.connect(audioContext.destination);
+
+      // Augmenter le gain pour la distorsion
+      gainNode.gain.value = 2; // Augmente le volume pour une distorsion plus percutante
     } catch (err) {
       console.error('Erreur lors de l\'accès au microphone :', err);
     }
