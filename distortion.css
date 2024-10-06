@@ -1,31 +1,26 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #282c34;
+  color: white;
+}
+
+.container {
   text-align: center;
-}
-
-h1 {
-  color: #333;
-}
-
-label {
-  display: block;
-  margin: 10px 0;
-}
-
-input[type="range"] {
-  width: 300px;
-  margin-bottom: 20px;
 }
 
 button {
   padding: 10px 20px;
-  background-color: #f54242;
-  color: white;
+  font-size: 18px;
+  background-color: #61dafb;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #d12d2d;
+  background-color: #21a1f1;
 }
