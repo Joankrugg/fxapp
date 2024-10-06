@@ -1,12 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM entièrement chargé');
+
+  const distortionSlider = document.getElementById('distortionSlider');
+  const toggleDistortionButton = document.getElementById('toggleDistortion');
+
+  // Vérifions que les éléments sont bien trouvés dans le DOM
+  console.log('distortionSlider:', distortionSlider);
+  console.log('toggleDistortionButton:', toggleDistortionButton);
+
+  if (!distortionSlider || !toggleDistortionButton) {
+    console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
+    return;
+  }
+
   let audioContext = null;
   let source = null;
   let distortionNode = null;
   let gainNode = null;
   let isDistorting = false;
-
-  const distortionSlider = document.getElementById('distortionSlider');
-  const toggleDistortionButton = document.getElementById('toggleDistortion');
 
   // Fonction pour créer l'AudioContext et les nodes nécessaires
   async function createAudioContext() {
