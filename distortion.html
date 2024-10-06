@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +8,16 @@
   <link rel="stylesheet" href="distortion.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Pédale de Distorsion</h1>
-    <button id="startButton">Activer l'effet</button>
-  </div>
+  <h1>Pédale de Distorsion</h1>
 
+  <!-- Slider pour gérer le gain de la distorsion -->
+  <label for="distortionSlider">Gain de Distorsion</label>
+  <input type="range" id="distortionSlider" min="0" max="1" step="0.01" value="0.5">
+
+  <!-- Bouton pour activer/désactiver l'audio -->
+  <button id="toggleDistortion">Activer la distorsion</button>
+
+  <!-- Charger le script après le contenu HTML -->
   <script src="distortion.js"></script>
 </body>
 </html>
