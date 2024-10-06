@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
       distortionNode.oversample = '4x'; // Surchantillonnage pour un son plus précis
 
       // Configurer le gain initial (pour éviter un son trop faible)
-      gainNode.gain.value = 0.8; // Volume réglé à 80%
+      gainNode.gain.value = 0.8;
 
       // Connecter la source -> distorsion -> gain -> sortie
       source.connect(distortionNode);
