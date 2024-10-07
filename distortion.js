@@ -4,10 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const distortionSlider = document.getElementById('distortionSlider');
   const toggleDistortionButton = document.getElementById('toggleDistortion');
 
-  // Vérifions que les éléments sont bien trouvés dans le DOM
-  console.log('distortionSlider:', distortionSlider);
-  console.log('toggleDistortionButton:', toggleDistortionButton);
-
   if (!distortionSlider || !toggleDistortionButton) {
     console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
     return;
@@ -17,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let source = null;
   let distortionNode = null;
   let gainNode = null;
+  let compressor = null;
   let isDistorting = false;
 
   // Fonction pour créer l'AudioContext et les nodes nécessaires
@@ -24,35 +21,43 @@ document.addEventListener('DOMContentLoaded', () => {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     gainNode = audioContext.createGain();
     distortionNode = audioContext.createWaveShaper();
+    compressor = audioContext.createDynamicsCompressor();
 
-    // Fonction de distorsion simple
+    // Fonction de distorsion améliorée pour un son plus musclé
     function makeDistortionCurve(amount) {
       const n_samples = 44100;
       const curve = new Float32Array(n_samples);
       const deg = Math.PI / 180;
       for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
-        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+        curve[i] = (amount * x) / (1 + Math.abs(x)); // meilleure courbe pour un son distordu
       }
       return curve;
     }
 
-    // Créer un flux d'entrée audio (microphone ou autre source)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
 
-      // Configurer la distorsion
+      // Configurer la distorsion avec une courbe plus douce et naturelle
       distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
-      distortionNode.oversample = '4x'; // Surchantillonnage pour un son plus précis
+      distortionNode.oversample = '4x'; // Suréchantillonnage pour un son plus naturel
 
-      // Configurer le gain initial (pour éviter un son trop faible)
-      gainNode.gain.value = 0.8; // Volume réglé à 80%
+      // Configurer le gain initial
+      gainNode.gain.value = 1; // Garde un niveau de volume constant
 
-      // Connecter la source -> distorsion -> gain -> sortie
+      // Configurer le compresseur pour éviter les pics de volume
+      compressor.threshold.setValueAtTime(-50, audioContext.currentTime);
+      compressor.knee.setValueAtTime(40, audioContext.currentTime);
+      compressor.ratio.setValueAtTime(12, audioContext.currentTime);
+      compressor.attack.setValueAtTime(0, audioContext.currentTime);
+      compressor.release.setValueAtTime(0.25, audioContext.currentTime);
+
+      // Connecter la chaîne : source -> distorsion -> gain -> compresseur -> destination
       source.connect(distortionNode);
       distortionNode.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      gainNode.connect(compressor);
+      compressor.connect(audioContext.destination);
 
     } catch (err) {
       console.error('Erreur lors de l\'accès au microphone :', err);
