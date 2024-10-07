@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     distortionNode = audioContext.createWaveShaper();
     compressor = audioContext.createDynamicsCompressor();
 
-    // Fonction de distorsion améliorée pour un son plus musclé
+    // Fonction de distorsion améliorée pour un son plus fort et plus agressif
     function makeDistortionCurve(amount) {
       const n_samples = 44100;
       const curve = new Float32Array(n_samples);
@@ -39,21 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
 
-      // Configurer la distorsion avec une courbe plus douce et naturelle
+      // Configurer la distorsion avec une courbe plus forte
       distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
-      distortionNode.oversample = '4x'; // Suréchantillonnage pour un son plus naturel
+      distortionNode.oversample = '4x';
 
       // Configurer le gain initial
-      gainNode.gain.value = 1; // Garde un niveau de volume constant
+      gainNode.gain.value = 1;
 
-      // Configurer le compresseur pour éviter les pics de volume
-      compressor.threshold.setValueAtTime(-50, audioContext.currentTime);
-      compressor.knee.setValueAtTime(40, audioContext.currentTime);
-      compressor.ratio.setValueAtTime(12, audioContext.currentTime);
-      compressor.attack.setValueAtTime(0, audioContext.currentTime);
-      compressor.release.setValueAtTime(0.25, audioContext.currentTime);
+      // Configurer le compresseur pour une compression maximale
+      compressor.threshold.setValueAtTime(-60, audioContext.currentTime); // très bas pour compresser presque tout
+      compressor.knee.setValueAtTime(0, audioContext.currentTime); // aucune transition douce
+      compressor.ratio.setValueAtTime(20, audioContext.currentTime); // ratio de compression très élevé
+      compressor.attack.setValueAtTime(0, audioContext.currentTime); // attaque instantanée
+      compressor.release.setValueAtTime(0.1, audioContext.currentTime); // relâchement rapide
 
-      // Connecter la chaîne : source -> distorsion -> gain -> compresseur -> destination
+      // Connecter la chaîne : source -> distorsion -> gain -> compresseur -> sortie
       source.connect(distortionNode);
       distortionNode.connect(gainNode);
       gainNode.connect(compressor);
