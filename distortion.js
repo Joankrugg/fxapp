@@ -1,30 +1,25 @@
-// Initialisation du son et de l'effet de distorsion avec Pizzicato
 let sound;
 let distortion;
 
 function initAudio() {
-    // Créer une source audio via le micro
+    // Demande l'accès au microphone de l'utilisateur
     navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContext.createMediaStreamSource(stream);
-
-        // Créer un objet Pizzicato Sound à partir du flux audio
+        // Créer un objet Pizzicato Sound à partir du flux du micro
         sound = new Pizzicato.Sound({
             source: 'input',
             options: {
-                audioContext: audioContext,
-                mediaStreamSource: source
+                mediaStream: stream
             }
         });
 
         // Appliquer l'effet de distorsion
         distortion = new Pizzicato.Effects.Distortion({
-            gain: 0.4 // Valeur par défaut du gain, ajustable avec le slider
+            gain: 0.5 // Valeur par défaut du gain
         });
 
         sound.addEffect(distortion);
-        sound.play(); // Démarrer la lecture du son avec l'effet de distorsion
+        sound.play(); // Démarrer la lecture du son
     })
     .catch(function(err) {
         console.error('Erreur lors de l\'accès au microphone: ' + err);
@@ -47,6 +42,12 @@ document.getElementById('toggleDistortion').addEventListener('click', function()
 document.getElementById('distortionSlider').addEventListener('input', function() {
     const gainValue = parseFloat(this.value);
     if (distortion) {
-        distortion.gain = gainValue;
+        distortion.gain = gainValue; // Ajuste le gain de l'effet
     }
 });
+
+
+
+
+
+
