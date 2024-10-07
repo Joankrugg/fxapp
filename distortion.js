@@ -13,13 +13,13 @@ function initAudio() {
             }
         });
 
-        // Appliquer l'effet de distorsion
+        // Créer et appliquer l'effet de distorsion
         distortion = new Pizzicato.Effects.Distortion({
             gain: 0.5 // Valeur par défaut du gain
         });
 
         sound.addEffect(distortion);
-        sound.play(); // Démarrer la lecture du son
+        sound.play(); // Démarrer la lecture du son avec la distorsion
     })
     .catch(function(err) {
         console.error('Erreur lors de l\'accès au microphone: ' + err);
@@ -45,9 +45,3 @@ document.getElementById('distortionSlider').addEventListener('input', function()
         distortion.gain = gainValue; // Ajuste le gain de l'effet
     }
 });
-
-
-
-
-
-
