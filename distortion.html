@@ -10,9 +10,25 @@
 <body>
   <h1>Pédale de Distorsion</h1>
 
-  <!-- Slider pour gérer le gain de la distorsion -->
+<!-- Slider pour gérer le gain de la distorsion -->
   <label for="distortionSlider">Gain de Distorsion</label>
   <input type="range" id="distortionSlider" min="0" max="1" step="0.01" value="0.5">
+
+  <!-- Slider pour gérer le niveau de gain général -->
+  <label for="gainSlider">Gain Global</label>
+  <input type="range" id="gainSlider" min="0" max="2" step="0.01" value="1">
+
+  <!-- Slider pour gérer le threshold du compresseur -->
+  <label for="thresholdSlider">Threshold du Compresseur</label>
+  <input type="range" id="thresholdSlider" min="-100" max="0" step="1" value="-60">
+
+  <!-- Slider pour ajuster les basses fréquences de l'EQ -->
+  <label for="bassSlider">Bass EQ (100Hz)</label>
+  <input type="range" id="bassSlider" min="-30" max="30" step="1" value="0">
+
+  <!-- Slider pour ajuster les hautes fréquences de l'EQ -->
+  <label for="trebleSlider">Treble EQ (5000Hz)</label>
+  <input type="range" id="trebleSlider" min="-30" max="30" step="1" value="0">
 
   <!-- Bouton pour activer/désactiver l'audio -->
   <button id="toggleDistortion">Activer la distorsion</button>

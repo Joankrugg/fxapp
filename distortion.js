@@ -3,8 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const distortionSlider = document.getElementById('distortionSlider');
   const toggleDistortionButton = document.getElementById('toggleDistortion');
+  const gainSlider = document.getElementById('gainSlider');
+  const thresholdSlider = document.getElementById('thresholdSlider');
+  const bassSlider = document.getElementById('bassSlider');
+  const trebleSlider = document.getElementById('trebleSlider');
 
-  if (!distortionSlider || !toggleDistortionButton) {
+  if (!distortionSlider || !toggleDistortionButton || !gainSlider || !thresholdSlider || !bassSlider || !trebleSlider) {
     console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
     return;
   }
@@ -14,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let distortionNode = null;
   let gainNode = null;
   let compressor = null;
+  let bassEQ = null;
+  let trebleEQ = null;
   let isDistorting = false;
 
   // Fonction pour créer l'AudioContext et les nodes nécessaires
@@ -22,15 +28,22 @@ document.addEventListener('DOMContentLoaded', () => {
     gainNode = audioContext.createGain();
     distortionNode = audioContext.createWaveShaper();
     compressor = audioContext.createDynamicsCompressor();
+    bassEQ = audioContext.createBiquadFilter();
+    trebleEQ = audioContext.createBiquadFilter();
 
-    // Fonction de distorsion améliorée pour un son plus fort et plus agressif
+    bassEQ.type = 'lowshelf';
+    bassEQ.frequency.value = 100; // Fréquence basse pour les basses
+    trebleEQ.type = 'highshelf';
+    trebleEQ.frequency.value = 5000; // Fréquence haute pour les aigus
+
+    // Fonction de distorsion
     function makeDistortionCurve(amount) {
       const n_samples = 44100;
       const curve = new Float32Array(n_samples);
       const deg = Math.PI / 180;
       for (let i = 0; i < n_samples; ++i) {
         const x = (i * 2) / n_samples - 1;
-        curve[i] = (amount * x) / (1 + Math.abs(x)); // meilleure courbe pour un son distordu
+        curve[i] = (amount * x) / (1 + Math.abs(x)); // Courbe de distorsion
       }
       return curve;
     }
@@ -39,23 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
 
-      // Configurer la distorsion avec une courbe plus forte
       distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
       distortionNode.oversample = '4x';
 
-      // Configurer le gain initial
-      gainNode.gain.value = 1;
+      // Configurer le compresseur initialement
+      compressor.threshold.setValueAtTime(thresholdSlider.value, audioContext.currentTime);
+      compressor.ratio.setValueAtTime(20, audioContext.currentTime);
 
-      // Configurer le compresseur pour une compression maximale
-      compressor.threshold.setValueAtTime(-60, audioContext.currentTime); // très bas pour compresser presque tout
-      compressor.knee.setValueAtTime(0, audioContext.currentTime); // aucune transition douce
-      compressor.ratio.setValueAtTime(20, audioContext.currentTime); // ratio de compression très élevé
-      compressor.attack.setValueAtTime(0, audioContext.currentTime); // attaque instantanée
-      compressor.release.setValueAtTime(0.1, audioContext.currentTime); // relâchement rapide
+      gainNode.gain.value = gainSlider.value;
 
-      // Connecter la chaîne : source -> distorsion -> gain -> compresseur -> sortie
+      // Chaîne audio : source -> distorsion -> bass EQ -> treble EQ -> gain -> compresseur -> destination
       source.connect(distortionNode);
-      distortionNode.connect(gainNode);
+      distortionNode.connect(bassEQ);
+      bassEQ.connect(trebleEQ);
+      trebleEQ.connect(gainNode);
       gainNode.connect(compressor);
       compressor.connect(audioContext.destination);
 
@@ -84,6 +94,34 @@ document.addEventListener('DOMContentLoaded', () => {
   distortionSlider.addEventListener('input', () => {
     if (distortionNode) {
       distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
+    }
+  });
+
+  // Gérer les changements du gain global
+  gainSlider.addEventListener('input', () => {
+    if (gainNode) {
+      gainNode.gain.value = gainSlider.value;
+    }
+  });
+
+  // Gérer les changements du threshold du compresseur
+  thresholdSlider.addEventListener('input', () => {
+    if (compressor) {
+      compressor.threshold.setValueAtTime(thresholdSlider.value, audioContext.currentTime);
+    }
+  });
+
+  // Gérer les changements de l'EQ basses
+  bassSlider.addEventListener('input', () => {
+    if (bassEQ) {
+      bassEQ.gain.setValueAtTime(bassSlider.value, audioContext.currentTime);
+    }
+  });
+
+  // Gérer les changements de l'EQ aigus
+  trebleSlider.addEventListener('input', () => {
+    if (trebleEQ) {
+      trebleEQ.gain.setValueAtTime(trebleSlider.value, audioContext.currentTime);
     }
   });
 
