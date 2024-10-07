@@ -1,76 +1,130 @@
-// Initialisation de l'audio context et des nodes
-let audioContext;
-let inputNode;
-let gainNode;
-let distortionNode;
-let compressorNode;
-let isDistortionActive = false;
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM entièrement chargé');
 
-// Fonction pour créer une courbe de distorsion
-function makeDistortionCurve(amount) {
-    const n_samples = 44100;
-    const curve = new Float32Array(n_samples);
-    const deg = Math.PI / 180;
-    for (let i = 0; i < n_samples; ++i) {
-        const x = (i * 2) / n_samples - 1;
-        curve[i] = (3 + amount) * x * 20 * deg / (Math.PI + amount * Math.abs(x));
-    }
-    return curve;
-}
+  const distortionSlider = document.getElementById('distortionSlider');
+  const toggleDistortionButton = document.getElementById('toggleDistortion');
+  const gainSlider = document.getElementById('gainSlider');
+  const thresholdSlider = document.getElementById('thresholdSlider');
+  const bassSlider = document.getElementById('bassSlider');
+  const trebleSlider = document.getElementById('trebleSlider');
 
-// Fonction d'initialisation
-function initAudio() {
+  if (!distortionSlider || !toggleDistortionButton || !gainSlider || !thresholdSlider || !bassSlider || !trebleSlider) {
+    console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
+    return;
+  }
+
+  let audioContext = null;
+  let source = null;
+  let distortionNode = null;
+  let gainNode = null;
+  let compressor = null;
+  let bassEQ = null;
+  let trebleEQ = null;
+  let isDistorting = false;
+
+  // Fonction pour créer l'AudioContext et les nodes nécessaires
+  async function createAudioContext() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Crée un nœud de distorsion
-    distortionNode = audioContext.createWaveShaper();
-    distortionNode.curve = makeDistortionCurve(400);  // Ajustement de la courbe de distorsion
-    distortionNode.oversample = '4x';  // Oversampling pour minimiser les artefacts
-
-    // Crée un nœud de gain pour contrôler le volume
     gainNode = audioContext.createGain();
-    gainNode.gain.value = 1;
+    distortionNode = audioContext.createWaveShaper();
+    compressor = audioContext.createDynamicsCompressor();
+    bassEQ = audioContext.createBiquadFilter();
+    trebleEQ = audioContext.createBiquadFilter();
 
-    // Crée un compresseur pour égaliser le son
-    compressorNode = audioContext.createDynamicsCompressor();
-    compressorNode.threshold.setValueAtTime(-50, audioContext.currentTime);
-    compressorNode.knee.setValueAtTime(40, audioContext.currentTime);
-    compressorNode.ratio.setValueAtTime(12, audioContext.currentTime);  // Compression plus forte
-    compressorNode.attack.setValueAtTime(0, audioContext.currentTime);
-    compressorNode.release.setValueAtTime(0.25, audioContext.currentTime);
+    bassEQ.type = 'lowshelf';
+    bassEQ.frequency.value = 100; // Fréquence basse pour les basses
+    trebleEQ.type = 'highshelf';
+    trebleEQ.frequency.value = 5000; // Fréquence haute pour les aigus
 
-    // Chaînage des nœuds audio
-    navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(function(stream) {
-        inputNode = audioContext.createMediaStreamSource(stream);
-
-        inputNode.connect(distortionNode);
-        distortionNode.connect(compressorNode);
-        compressorNode.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        console.log("Audio context et nodes initialisés.");
-    })
-    .catch(function(err) {
-        console.error("Erreur lors de l'accès à l'entrée audio: " + err);
-    });
-}
-
-// Gestion de l'activation/désactivation de la distorsion
-document.getElementById('toggleDistortion').addEventListener('click', function() {
-    if (!isDistortionActive) {
-        initAudio();
-        isDistortionActive = true;
-        this.textContent = 'Désactiver la distorsion';
-    } else {
-        audioContext.close();
-        isDistortionActive = false;
-        this.textContent = 'Activer la distorsion';
+    // Fonction de distorsion
+    function makeDistortionCurve(amount) {
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      const deg = Math.PI / 180;
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        curve[i] = (amount * x) / (1 + Math.abs(x)); // Courbe de distorsion
+      }
+      return curve;
     }
-});
 
-// Ajustement du gain de distorsion via le slider
-document.getElementById('distortionSlider').addEventListener('input', function() {
-    const amount = parseFloat(this.value) * 400;  // Ajuster l'échelle du slider
-    distortionNode.curve = makeDistortionCurve(amount);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      source = audioContext.createMediaStreamSource(stream);
+
+      distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
+      distortionNode.oversample = '4x';
+
+      // Configurer le compresseur initialement
+      compressor.threshold.setValueAtTime(thresholdSlider.value, audioContext.currentTime);
+      compressor.ratio.setValueAtTime(20, audioContext.currentTime);
+
+      gainNode.gain.value = gainSlider.value;
+
+      // Chaîne audio : source -> distorsion -> bass EQ -> treble EQ -> gain -> compresseur -> destination
+      source.connect(distortionNode);
+      distortionNode.connect(bassEQ);
+      bassEQ.connect(trebleEQ);
+      trebleEQ.connect(gainNode);
+      gainNode.connect(compressor);
+      compressor.connect(audioContext.destination);
+
+    } catch (err) {
+      console.error('Erreur lors de l\'accès au microphone :', err);
+    }
+  }
+
+  // Fonction pour activer/désactiver la distorsion
+  function toggleDistortion() {
+    if (!isDistorting) {
+      createAudioContext();
+      toggleDistortionButton.textContent = 'Désactiver la distorsion';
+      isDistorting = true;
+    } else {
+      if (audioContext) {
+        audioContext.close();
+      }
+      audioContext = null;
+      toggleDistortionButton.textContent = 'Activer la distorsion';
+      isDistorting = false;
+    }
+  }
+
+  // Gérer les changements du slider de distorsion
+  distortionSlider.addEventListener('input', () => {
+    if (distortionNode) {
+      distortionNode.curve = makeDistortionCurve(distortionSlider.value * 100);
+    }
+  });
+
+  // Gérer les changements du gain global
+  gainSlider.addEventListener('input', () => {
+    if (gainNode) {
+      gainNode.gain.value = gainSlider.value;
+    }
+  });
+
+  // Gérer les changements du threshold du compresseur
+  thresholdSlider.addEventListener('input', () => {
+    if (compressor) {
+      compressor.threshold.setValueAtTime(thresholdSlider.value, audioContext.currentTime);
+    }
+  });
+
+  // Gérer les changements de l'EQ basses
+  bassSlider.addEventListener('input', () => {
+    if (bassEQ) {
+      bassEQ.gain.setValueAtTime(bassSlider.value, audioContext.currentTime);
+    }
+  });
+
+  // Gérer les changements de l'EQ aigus
+  trebleSlider.addEventListener('input', () => {
+    if (trebleEQ) {
+      trebleEQ.gain.setValueAtTime(trebleSlider.value, audioContext.currentTime);
+    }
+  });
+
+  // Écouter le clic du bouton pour activer/désactiver la distorsion
+  toggleDistortionButton.addEventListener('click', toggleDistortion);
 });
