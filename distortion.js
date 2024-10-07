@@ -11,15 +11,15 @@ function initAudio() {
             options: {
                 mediaStream: stream
             }
-        });
+        }, function() {
+            // Appliquer l'effet de distorsion
+            distortion = new Pizzicato.Effects.Distortion({
+                gain: 0.5 // Valeur par défaut du gain
+            });
 
-        // Créer et appliquer l'effet de distorsion
-        distortion = new Pizzicato.Effects.Distortion({
-            gain: 0.5 // Valeur par défaut du gain
+            sound.addEffect(distortion);
+            sound.play(); // Démarrer la lecture du son
         });
-
-        sound.addEffect(distortion);
-        sound.play(); // Démarrer la lecture du son avec la distorsion
     })
     .catch(function(err) {
         console.error('Erreur lors de l\'accès au microphone: ' + err);
