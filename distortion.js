@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const thresholdSlider = document.getElementById('thresholdSlider');
   const bassSlider = document.getElementById('bassSlider');
   const trebleSlider = document.getElementById('trebleSlider');
+  const startBtn = document.getElementById('start');
+  const statusDiv = document.getElementById('status');
 
-  if (!distortionSlider || !toggleDistortionButton || !gainSlider || !thresholdSlider || !bassSlider || !trebleSlider) {
+  if (!distortionSlider || !toggleDistortionButton || !gainSlider || !thresholdSlider || !bassSlider || !trebleSlider || !startBtn || !statusDiv) {
     console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
     return;
   }
@@ -21,6 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let bassEQ = null;
   let trebleEQ = null;
   let isDistorting = false;
+  let micStream;
+  let sourceNode;
+  let waveShaperNode;
+  let toneNode;
+  let volumeNode;
 
   // Fonction pour créer l'AudioContext et les nodes nécessaires
   async function createAudioContext() {
@@ -129,4 +136,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Écouter le clic du bouton pour activer/désactiver la distorsion
   toggleDistortionButton.addEventListener('click', toggleDistortion);
+
+  startBtn.onclick = async () => {
+    if (audioContext) {
+      statusDiv.textContent = 'Déjà activé.';
+      return;
+    }
+    try {
+      statusDiv.textContent = 'Connexion au micro...';
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      sourceNode = audioContext.createMediaStreamSource(micStream);
+
+      // Gain d'entrée
+      gainNode = audioContext.createGain();
+      gainNode.gain.value = 1;
+
+      // Distorsion
+      waveShaperNode = audioContext.createWaveShaper();
+      const distAmount = parseFloat(gainSlider.value) * 100;
+      waveShaperNode.curve = makeDistortionCurve(distAmount);
+      waveShaperNode.oversample = '4x';
+
+      // Tone (filtre passe-haut)
+      toneNode = audioContext.createBiquadFilter();
+      toneNode.type = 'highshelf';
+      toneNode.frequency.value = 1200;
+      toneNode.gain.value = (parseFloat(toneSlider.value) - 0.5) * 30; // -15 à +15 dB
+
+      // Volume final
+      volumeNode = audioContext.createGain();
+      volumeNode.gain.value = parseFloat(volumeSlider.value);
+
+      // Routing : mic -> gain -> disto -> tone -> volume -> sortie
+      sourceNode.connect(gainNode);
+      gainNode.connect(waveShaperNode);
+      waveShaperNode.connect(toneNode);
+      toneNode.connect(volumeNode);
+      volumeNode.connect(audioContext.destination);
+
+      statusDiv.textContent = 'Micro activé avec distorsion !';
+      startBtn.textContent = 'Micro activé !';
+      startBtn.style.background = '#4caf50';
+      startBtn.disabled = true;
+    } catch (e) {
+      statusDiv.textContent = 'Erreur micro : ' + e.message;
+    }
+  };
+
+  gainSlider.oninput = () => {
+    if (waveShaperNode) {
+      const distAmount = parseFloat(gainSlider.value) * 100;
+      waveShaperNode.curve = makeDistortionCurve(distAmount);
+    }
+  };
+
+  toneSlider.oninput = () => {
+    if (toneNode) toneNode.gain.value = (parseFloat(toneSlider.value) - 0.5) * 30;
+  };
+
+  volumeSlider.oninput = () => {
+    if (volumeNode) volumeNode.gain.value = parseFloat(volumeSlider.value);
+  };
 });
