@@ -70,16 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     else led.classList.remove('on');
   }
 
-  // --- Chaînage dynamique ---
-  function connectChain(nodesArr) {
-    // Déconnecte tout
-    nodesArr.forEach((n, i) => { if (n && n.disconnect) try { n.disconnect(); } catch(e){} });
-    // Connecte en série
-    for (let i = 0; i < nodesArr.length - 1; i++) {
-      if (nodesArr[i] && nodesArr[i+1]) nodesArr[i].connect(nodesArr[i+1]);
-    }
-  }
-
   // --- Création des effets ---
   function createEQ(ctx) {
     const bass = ctx.createBiquadFilter();
@@ -239,11 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function buildChain() {
     if (!audioContext || !sourceNode) return;
-    // Détruit les anciens nodes
-    [eqNodes, fuzzNodes, tremoloNodes, chorusNodes, flangerNodes, delayNodes, reverbNodes].forEach(obj => {
-      if (obj.nodes) obj.nodes.forEach(n => { if (n && n.disconnect) try { n.disconnect(); } catch(e){} });
-    });
-    // Recrée les nodes
+
+    // Recrée tous les nodes à chaque appel
     eqNodes = createEQ(audioContext);
     fuzzNodes = createFuzz(audioContext);
     tremoloNodes = createTremolo(audioContext);
@@ -251,7 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
     flangerNodes = createFlanger(audioContext);
     delayNodes = createDelay(audioContext);
     reverbNodes = createReverb(audioContext);
-    // Routing dynamique
+
+    // Construit la chaîne des nodes actifs
     let chain = [sourceNode];
     if (eqOn.checked) chain.push(eqNodes.in, ...eqNodes.nodes.slice(1));
     if (fuzzOn.checked) chain.push(fuzzNodes.in, ...fuzzNodes.nodes.slice(1));
@@ -262,7 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reverbOn.checked) chain.push(reverbNodes.in, ...reverbNodes.nodes.slice(1));
     outputNode = audioContext.createGain();
     chain.push(outputNode);
-    connectChain(chain);
+
+    // Connecte chaque node à son suivant
+    for (let i = 0; i < chain.length - 1; i++) {
+      if (chain[i] && chain[i+1]) {
+        try {
+          chain[i].disconnect(); // Déconnecte toute connexion précédente
+        } catch(e){}
+        try {
+          chain[i].connect(chain[i+1]);
+        } catch(e){}
+      }
+    }
     outputNode.connect(audioContext.destination);
   }
 
