@@ -1,0 +1,135 @@
+body {
+  background: #f7e7ce;
+  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  margin: 0;
+}
+
+.pedal-container.reverb {
+  background: #c6f7e7;
+  border-radius: 30px 30px 40px 40px;
+  box-shadow: 0 8px 32px rgba(60, 40, 20, 0.18), 0 2px 8px #bfae9e;
+  padding: 40px 32px 32px 32px;
+  min-width: 340px;
+  max-width: 90vw;
+  text-align: center;
+  border: 4px solid #bfae9e;
+}
+
+.pedal-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 2.1em;
+  color: #388e3c;
+  margin-bottom: 32px;
+  letter-spacing: 2px;
+  text-shadow: 1px 2px 0 #fff8e1, 0 2px 8px #bfae9e;
+}
+
+.knobs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.rotary-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rotary-group label {
+  font-size: 1.1em;
+  color: #388e3c;
+  margin-bottom: 10px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.rotary-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#mix-graduations {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#mix {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  opacity: 0;
+  z-index: 3;
+  cursor: pointer;
+}
+
+.rotary-knob {
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 60px;
+  height: 60px;
+  background: #fff8e1;
+  border-radius: 50%;
+  border: 3px solid #388e3c;
+  box-shadow: 0 2px 8px #bfae9e;
+  z-index: 2;
+  transition: box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rotary-knob::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 18px;
+  background: #388e3c;
+  border-radius: 4px;
+  position: absolute;
+  top: 6px;
+  left: 26px;
+}
+
+.footswitch {
+  margin-top: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #bbb;
+  border: 3px solid #7a5c2e;
+  box-shadow: 0 4px 16px #bfae9e, 0 1px 2px #fff8e1;
+  color: #fff8e1;
+  font-size: 1.2em;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  outline: none;
+}
+
+.footswitch.on {
+  background: #4caf50;
+  color: #fff;
+  border-color: #388e3c;
+}
+
+.footswitch.off {
+  background: #bbb;
+  color: #fff8e1;
+  border-color: #7a5c2e;
+}
+
+#status {
+  margin-top: 18px;
+  color: #388e3c;
+  font-size: 1em;
+  min-height: 24px;
+  font-family: 'Courier New', Courier, monospace;
+} 

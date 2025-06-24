@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pédale Reverb Vintage</title>
+  <link rel="stylesheet" href="distortion.css">
+  <link rel="stylesheet" href="reverb.css">
+</head>
+<body>
+  <div class="pedal-container reverb">
+    <h1 class="pedal-title">Vintage Reverb</h1>
+    <div class="knobs">
+      <div class="rotary-group">
+        <label for="mix">Mix</label>
+        <div class="rotary-wrapper">
+          <canvas id="mix-graduations" width="80" height="80"></canvas>
+          <input type="range" id="mix" min="0" max="1" step="0.1" value="0.4">
+          <div class="rotary-knob" id="mix-knob"></div>
+        </div>
+      </div>
+    </div>
+    <button id="footswitch" class="footswitch off">OFF</button>
+    <div id="status"></div>
+  </div>
+  <script src="reverb.js"></script>
+</body>
+</html> 
