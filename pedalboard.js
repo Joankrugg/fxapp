@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function buildChain() {
+    if (!audioContext || !sourceNode) return;
     // Détruit les anciens nodes
     [eqNodes, fuzzNodes, tremoloNodes, chorusNodes, flangerNodes, delayNodes, reverbNodes].forEach(obj => {
       if (obj.nodes) obj.nodes.forEach(n => { if (n && n.disconnect) try { n.disconnect(); } catch(e){} });
