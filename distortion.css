@@ -115,6 +115,12 @@ button#start:hover {
   background: #a67c3c;
 }
 
+button#start:disabled {
+  background: #4caf50 !important;
+  color: #fff8e1;
+  cursor: not-allowed;
+}
+
 #status {
   margin-top: 18px;
   color: #7a5c2e;
