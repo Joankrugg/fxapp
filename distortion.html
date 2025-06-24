@@ -1,39 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pédale de Distorsion</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzicato/0.6.4/Pizzicato.min.js" integrity="sha512-K+cPWcoDCr2JFFfe912LrvRUQbVJuWNfeWK5r/HrmpDs8ELrsjVib8Fs5oAxzu76fG66ajGhDLvvcxBbeEzl9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <title>Pédale Distorsion Vintage</title>
   <link rel="stylesheet" href="distortion.css">
 </head>
 <body>
-  <h1>Pédale de Distorsion</h1>
-
-<!-- Slider pour gérer le gain de la distorsion -->
-  <label for="distortionSlider">Gain de Distorsion</label>
-  <input type="range" id="distortionSlider" min="0" max="1" step="0.01" value="0.5">
-
-  <!-- Slider pour gérer le niveau de gain général -->
-  <label for="gainSlider">Gain Global</label>
-  <input type="range" id="gainSlider" min="0" max="2" step="0.01" value="1">
-
-  <!-- Slider pour gérer le threshold du compresseur -->
-  <label for="thresholdSlider">Threshold du Compresseur</label>
-  <input type="range" id="thresholdSlider" min="-100" max="0" step="1" value="-60">
-
-  <!-- Slider pour ajuster les basses fréquences de l'EQ -->
-  <label for="bassSlider">Bass EQ (100Hz)</label>
-  <input type="range" id="bassSlider" min="-30" max="30" step="1" value="0">
-
-  <!-- Slider pour ajuster les hautes fréquences de l'EQ -->
-  <label for="trebleSlider">Treble EQ (5000Hz)</label>
-  <input type="range" id="trebleSlider" min="-30" max="30" step="1" value="0">
-
-  <!-- Bouton pour activer/désactiver l'audio -->
-  <button id="toggleDistortion">Activer la distorsion</button>
-
-  <!-- Charger le script après le contenu HTML -->
+  <div class="pedal-container">
+    <h1 class="pedal-title">Danelectro Style Distorsion</h1>
+    <div class="knobs">
+      <div class="knob-group">
+        <label for="gain">Gain</label>
+        <input type="range" id="gain" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="knob-group">
+        <label for="tone">Tonalité</label>
+        <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="knob-group">
+        <label for="volume">Volume</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+      </div>
+    </div>
+    <button id="start">Activer le micro</button>
+    <div id="status"></div>
+  </div>
   <script src="distortion.js"></script>
 </body>
 </html>
