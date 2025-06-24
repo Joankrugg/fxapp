@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const gainSlider = document.getElementById('gain');
   const toneSlider = document.getElementById('tone');
   const volumeSlider = document.getElementById('volume');
+  const mixSlider = document.getElementById('mix');
   const startBtn = document.getElementById('start');
   const statusDiv = document.getElementById('status');
 
-  if (!gainSlider || !toneSlider || !volumeSlider || !startBtn || !statusDiv) {
+  if (!gainSlider || !toneSlider || !volumeSlider || !mixSlider || !startBtn || !statusDiv) {
     console.error('Erreur: Impossible de trouver les éléments HTML nécessaires.');
     return;
   }
@@ -18,17 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let gainNode = null;
   let waveShaperNode = null;
   let toneNode = null;
+  let lowpassNode = null;
+  let dryGain = null;
+  let wetGain = null;
+  let mixNode = null;
   let volumeNode = null;
 
+  // Courbe de distorsion douce (tanh)
   function makeDistortionCurve(amount) {
-    const k = typeof amount === 'number' ? amount : 50;
     const n_samples = 44100;
     const curve = new Float32Array(n_samples);
-    const deg = Math.PI / 180;
-    let x;
     for (let i = 0; i < n_samples; ++i) {
-      x = (i * 2) / n_samples - 1;
-      curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+      let x = (i * 2) / n_samples - 1;
+      curve[i] = Math.tanh(amount * x);
     }
     return curve;
   }
@@ -48,9 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
       gainNode = audioContext.createGain();
       gainNode.gain.value = 1;
 
-      // Distorsion
+      // Distorsion douce
       waveShaperNode = audioContext.createWaveShaper();
-      const distAmount = parseFloat(gainSlider.value) * 100;
+      const distAmount = parseFloat(gainSlider.value) * 10 + 1;
       waveShaperNode.curve = makeDistortionCurve(distAmount);
       waveShaperNode.oversample = '4x';
 
@@ -58,20 +61,43 @@ document.addEventListener('DOMContentLoaded', () => {
       toneNode = audioContext.createBiquadFilter();
       toneNode.type = 'highshelf';
       toneNode.frequency.value = 1200;
-      toneNode.gain.value = (parseFloat(toneSlider.value) - 0.5) * 30; // -15 à +15 dB
+      toneNode.gain.value = (parseFloat(toneSlider.value) - 0.5) * 30;
+
+      // Filtre passe-bas pour adoucir la distorsion
+      lowpassNode = audioContext.createBiquadFilter();
+      lowpassNode.type = 'lowpass';
+      lowpassNode.frequency.value = 3500;
+
+      // Mix dry/wet
+      dryGain = audioContext.createGain();
+      wetGain = audioContext.createGain();
+      mixNode = audioContext.createGain(); // Somme
 
       // Volume final
       volumeNode = audioContext.createGain();
       volumeNode.gain.value = parseFloat(volumeSlider.value);
 
-      // Routing : mic -> gain -> disto -> tone -> volume -> sortie
+      // Routing :
+      // dry : source -> gainNode -> dryGain -> mixNode
+      // wet : source -> gainNode -> waveShaper -> tone -> lowpass -> wetGain -> mixNode
+      // mixNode -> volume -> sortie
       sourceNode.connect(gainNode);
+      gainNode.connect(dryGain);
       gainNode.connect(waveShaperNode);
       waveShaperNode.connect(toneNode);
-      toneNode.connect(volumeNode);
+      toneNode.connect(lowpassNode);
+      lowpassNode.connect(wetGain);
+      dryGain.connect(mixNode);
+      wetGain.connect(mixNode);
+      mixNode.connect(volumeNode);
       volumeNode.connect(audioContext.destination);
 
-      statusDiv.textContent = 'Micro activé avec distorsion !';
+      // Initial mix
+      const mix = parseFloat(mixSlider.value);
+      dryGain.gain.value = 1 - mix;
+      wetGain.gain.value = mix;
+
+      statusDiv.textContent = 'Micro activé avec distorsion musicale !';
       startBtn.textContent = 'Micro activé !';
       startBtn.style.background = '#4caf50';
       startBtn.disabled = true;
@@ -82,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   gainSlider.oninput = () => {
     if (waveShaperNode) {
-      const distAmount = parseFloat(gainSlider.value) * 100;
+      const distAmount = parseFloat(gainSlider.value) * 10 + 1;
       waveShaperNode.curve = makeDistortionCurve(distAmount);
     }
   };
@@ -93,5 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   volumeSlider.oninput = () => {
     if (volumeNode) volumeNode.gain.value = parseFloat(volumeSlider.value);
+  };
+
+  mixSlider.oninput = () => {
+    if (dryGain && wetGain) {
+      const mix = parseFloat(mixSlider.value);
+      dryGain.gain.value = 1 - mix;
+      wetGain.gain.value = mix;
+    }
   };
 });
