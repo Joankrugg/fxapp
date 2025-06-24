@@ -239,6 +239,40 @@ document.addEventListener('DOMContentLoaded', () => {
     delayNodes = createDelay(audioContext);
     reverbNodes = createReverb(audioContext);
 
+    // Force 100% wet si effet activé (pour la chaîne série)
+    if (chorusOn.checked) {
+      chorusNodes.nodes.forEach(n => {
+        if (n.gain !== undefined && n !== chorusNodes.in && n !== chorusNodes.out) {
+          if (n === chorusNodes.nodes[4]) n.gain.value = 1; // wet
+          if (n === chorusNodes.nodes[5]) n.gain.value = 0; // dry
+        }
+      });
+    }
+    if (flangerOn.checked) {
+      flangerNodes.nodes.forEach(n => {
+        if (n.gain !== undefined && n !== flangerNodes.in && n !== flangerNodes.out) {
+          if (n === flangerNodes.nodes[4]) n.gain.value = 1; // wet
+          if (n === flangerNodes.nodes[5]) n.gain.value = 0; // dry
+        }
+      });
+    }
+    if (delayOn.checked) {
+      delayNodes.nodes.forEach(n => {
+        if (n.gain !== undefined && n !== delayNodes.in && n !== delayNodes.out) {
+          if (n === delayNodes.nodes[3]) n.gain.value = 1; // wet
+          if (n === delayNodes.nodes[4]) n.gain.value = 0; // dry
+        }
+      });
+    }
+    if (reverbOn.checked) {
+      reverbNodes.nodes.forEach(n => {
+        if (n.gain !== undefined && n !== reverbNodes.in && n !== reverbNodes.out) {
+          if (n === reverbNodes.nodes[2]) n.gain.value = 1; // wet
+          if (n === reverbNodes.nodes[3]) n.gain.value = 0; // dry
+        }
+      });
+    }
+
     // Liste des effets activés dans l'ordre
     const effects = [];
     if (eqOn.checked) effects.push(eqNodes);
