@@ -239,49 +239,15 @@ document.addEventListener('DOMContentLoaded', () => {
     delayNodes = createDelay(audioContext);
     reverbNodes = createReverb(audioContext);
 
-    // Force 100% wet si effet activé (pour la chaîne série)
-    if (chorusOn.checked) {
-      chorusNodes.nodes.forEach(n => {
-        if (n.gain !== undefined && n !== chorusNodes.in && n !== chorusNodes.out) {
-          if (n === chorusNodes.nodes[4]) n.gain.value = 1; // wet
-          if (n === chorusNodes.nodes[5]) n.gain.value = 0; // dry
-        }
-      });
-    }
-    if (flangerOn.checked) {
-      flangerNodes.nodes.forEach(n => {
-        if (n.gain !== undefined && n !== flangerNodes.in && n !== flangerNodes.out) {
-          if (n === flangerNodes.nodes[4]) n.gain.value = 1; // wet
-          if (n === flangerNodes.nodes[5]) n.gain.value = 0; // dry
-        }
-      });
-    }
-    if (delayOn.checked) {
-      delayNodes.nodes.forEach(n => {
-        if (n.gain !== undefined && n !== delayNodes.in && n !== delayNodes.out) {
-          if (n === delayNodes.nodes[3]) n.gain.value = 1; // wet
-          if (n === delayNodes.nodes[4]) n.gain.value = 0; // dry
-        }
-      });
-    }
-    if (reverbOn.checked) {
-      reverbNodes.nodes.forEach(n => {
-        if (n.gain !== undefined && n !== reverbNodes.in && n !== reverbNodes.out) {
-          if (n === reverbNodes.nodes[2]) n.gain.value = 1; // wet
-          if (n === reverbNodes.nodes[3]) n.gain.value = 0; // dry
-        }
-      });
-    }
-
     // Liste des effets activés dans l'ordre
     const effects = [];
-    if (eqOn.checked) effects.push(eqNodes);
-    if (fuzzOn.checked) effects.push(fuzzNodes);
-    if (tremoloOn.checked) effects.push(tremoloNodes);
-    if (chorusOn.checked) effects.push(chorusNodes);
-    if (flangerOn.checked) effects.push(flangerNodes);
-    if (delayOn.checked) effects.push(delayNodes);
-    if (reverbOn.checked) effects.push(reverbNodes);
+    if (eqOn.checked) effects.push({type: 'eq', ...eqNodes});
+    if (fuzzOn.checked) effects.push({type: 'fuzz', ...fuzzNodes});
+    if (tremoloOn.checked) effects.push({type: 'tremolo', ...tremoloNodes});
+    if (chorusOn.checked) effects.push({type: 'chorus', ...chorusNodes});
+    if (flangerOn.checked) effects.push({type: 'flanger', ...flangerNodes});
+    if (delayOn.checked) effects.push({type: 'delay', ...delayNodes});
+    if (reverbOn.checked) effects.push({type: 'reverb', ...reverbNodes});
 
     // Déconnecte tout
     try { sourceNode.disconnect(); } catch(e){}
@@ -295,9 +261,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Connecte la chaîne : source -> effet1 -> effet2 ... -> outputNode -> destination
     let lastNode = sourceNode;
-    for (const eff of effects) {
-      lastNode.connect(eff.in);
-      lastNode = eff.out;
+    for (let i = 0; i < effects.length; i++) {
+      const eff = effects[i];
+      // Pour chorus, flanger, delay, reverb :
+      if (["chorus","flanger","delay","reverb"].includes(eff.type)) {
+        // Si c'est le dernier effet de la chaîne, on utilise le mix dry+wet (out)
+        // Sinon, on ne connecte que la sortie wet (nodes[4] pour chorus/flanger, [3] pour delay, [2] pour reverb)
+        const isLast = (i === effects.length - 1);
+        if (isLast) {
+          lastNode.connect(eff.in);
+          lastNode = eff.out;
+        } else {
+          // On connecte la sortie wet uniquement
+          lastNode.connect(eff.in);
+          if (eff.type === 'chorus' || eff.type === 'flanger') {
+            lastNode = eff.nodes[4]; // wet
+          } else if (eff.type === 'delay') {
+            lastNode = eff.nodes[3]; // wet
+          } else if (eff.type === 'reverb') {
+            lastNode = eff.nodes[2]; // wet
+          }
+        }
+      } else {
+        lastNode.connect(eff.in);
+        lastNode = eff.out;
+      }
     }
     outputNode = audioContext.createGain();
     lastNode.connect(outputNode);
