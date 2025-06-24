@@ -239,29 +239,34 @@ document.addEventListener('DOMContentLoaded', () => {
     delayNodes = createDelay(audioContext);
     reverbNodes = createReverb(audioContext);
 
-    // Construit la chaîne des nodes actifs
-    let chain = [sourceNode];
-    if (eqOn.checked) chain.push(eqNodes.in, ...eqNodes.nodes.slice(1));
-    if (fuzzOn.checked) chain.push(fuzzNodes.in, ...fuzzNodes.nodes.slice(1));
-    if (tremoloOn.checked) chain.push(tremoloNodes.in, ...tremoloNodes.nodes.slice(1));
-    if (chorusOn.checked) chain.push(chorusNodes.in, ...chorusNodes.nodes.slice(1));
-    if (flangerOn.checked) chain.push(flangerNodes.in, ...flangerNodes.nodes.slice(1));
-    if (delayOn.checked) chain.push(delayNodes.in, ...delayNodes.nodes.slice(1));
-    if (reverbOn.checked) chain.push(reverbNodes.in, ...reverbNodes.nodes.slice(1));
-    outputNode = audioContext.createGain();
-    chain.push(outputNode);
+    // Liste des effets activés dans l'ordre
+    const effects = [];
+    if (eqOn.checked) effects.push(eqNodes);
+    if (fuzzOn.checked) effects.push(fuzzNodes);
+    if (tremoloOn.checked) effects.push(tremoloNodes);
+    if (chorusOn.checked) effects.push(chorusNodes);
+    if (flangerOn.checked) effects.push(flangerNodes);
+    if (delayOn.checked) effects.push(delayNodes);
+    if (reverbOn.checked) effects.push(reverbNodes);
 
-    // Connecte chaque node à son suivant
-    for (let i = 0; i < chain.length - 1; i++) {
-      if (chain[i] && chain[i+1]) {
-        try {
-          chain[i].disconnect(); // Déconnecte toute connexion précédente
-        } catch(e){}
-        try {
-          chain[i].connect(chain[i+1]);
-        } catch(e){}
+    // Déconnecte tout
+    try { sourceNode.disconnect(); } catch(e){}
+    [eqNodes, fuzzNodes, tremoloNodes, chorusNodes, flangerNodes, delayNodes, reverbNodes].forEach(obj => {
+      if (obj && obj.in && obj.out) {
+        try { obj.in.disconnect(); } catch(e){}
+        try { obj.out.disconnect(); } catch(e){}
       }
+    });
+    if (outputNode) try { outputNode.disconnect(); } catch(e){}
+
+    // Connecte la chaîne : source -> effet1 -> effet2 ... -> outputNode -> destination
+    let lastNode = sourceNode;
+    for (const eff of effects) {
+      lastNode.connect(eff.in);
+      lastNode = eff.out;
     }
+    outputNode = audioContext.createGain();
+    lastNode.connect(outputNode);
     outputNode.connect(audioContext.destination);
   }
 
