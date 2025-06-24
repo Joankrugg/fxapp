@@ -7,29 +7,46 @@
   <link rel="stylesheet" href="distortion.css">
 </head>
 <body>
-  <div class="pedal-container">
-    <h1 class="pedal-title">Danelectro Style Distorsion</h1>
+  <div class="pedal-container distortion">
+    <h1 class="pedal-title">Vintage Distorsion</h1>
     <div class="knobs">
-      <div class="knob-group">
+      <div class="rotary-group">
         <label for="gain">Gain</label>
-        <input type="range" id="gain" min="0" max="1" step="0.01" value="0.5">
+        <div class="rotary-wrapper">
+          <canvas id="gain-graduations" width="80" height="80"></canvas>
+          <input type="range" id="gain" min="0" max="1" step="0.1" value="0.5">
+          <div class="rotary-knob" id="gain-knob"></div>
+        </div>
       </div>
-      <div class="knob-group">
-        <label for="tone">Tonalité</label>
-        <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
+      <div class="rotary-group">
+        <label for="tone">Tone</label>
+        <div class="rotary-wrapper">
+          <canvas id="tone-graduations" width="80" height="80"></canvas>
+          <input type="range" id="tone" min="0" max="1" step="0.1" value="0.5">
+          <div class="rotary-knob" id="tone-knob"></div>
+        </div>
       </div>
-      <div class="knob-group">
+      <div class="rotary-group">
         <label for="volume">Volume</label>
-        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+        <div class="rotary-wrapper">
+          <canvas id="volume-graduations" width="80" height="80"></canvas>
+          <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7">
+          <div class="rotary-knob" id="volume-knob"></div>
+        </div>
       </div>
-      <div class="knob-group">
-        <label for="mix">Mix</label>
-        <input type="range" id="mix" min="0" max="1" step="0.01" value="0.7">
+      <div class="rotary-group">
+        <label for="shape">Shape</label>
+        <div class="rotary-wrapper">
+          <canvas id="shape-graduations" width="80" height="80"></canvas>
+          <input type="range" id="shape" min="0" max="1" step="0.1" value="0.5">
+          <div class="rotary-knob" id="shape-knob"></div>
+        </div>
       </div>
     </div>
-    <button id="start">Activer le micro</button>
+    <button id="footswitch" class="footswitch off">OFF</button>
     <div id="status"></div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
   <script src="distortion.js"></script>
 </body>
 </html>

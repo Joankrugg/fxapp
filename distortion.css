@@ -1,17 +1,13 @@
 body {
   background: #f7e7ce;
   font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   margin: 0;
 }
 
-.pedal-container {
-  background: #e3d6c6;
+.pedal-container.distortion {
+  background: #f7c6c7;
   border-radius: 30px 30px 40px 40px;
-  box-shadow: 0 8px 32px rgba(60, 40, 20, 0.25), 0 2px 8px #bfae9e;
+  box-shadow: 0 8px 32px rgba(60, 40, 20, 0.18), 0 2px 8px #bfae9e;
   padding: 40px 32px 32px 32px;
   min-width: 340px;
   max-width: 90vw;
@@ -22,7 +18,7 @@ body {
 .pedal-title {
   font-family: 'Courier New', Courier, monospace;
   font-size: 2.1em;
-  color: #7a5c2e;
+  color: #a67c3c;
   margin-bottom: 32px;
   letter-spacing: 2px;
   text-shadow: 1px 2px 0 #fff8e1, 0 2px 8px #bfae9e;
@@ -30,100 +26,109 @@ body {
 
 .knobs {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   margin-bottom: 32px;
 }
 
-.knob-group {
+.rotary-group {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.knob-group label {
+.rotary-group label {
   font-size: 1.1em;
-  color: #7a5c2e;
+  color: #a67c3c;
   margin-bottom: 10px;
   font-family: 'Courier New', Courier, monospace;
 }
 
-.knob-group input[type="range"] {
-  -webkit-appearance: none;
-  width: 70px;
-  height: 70px;
-  background: #f5e1b7;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px #bfae9e, 0 1px 2px #fff8e1;
-  outline: none;
-  margin-bottom: 8px;
-  margin-top: 0;
-  transform: rotate(-90deg);
-  border: 3px solid #bfae9e;
+.rotary-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.knob-group input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 32px;
-  height: 32px;
-  background: #7a5c2e;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px #bfae9e;
+#gain-graduations {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#gain {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  opacity: 0;
+  z-index: 3;
   cursor: pointer;
-  border: 2px solid #fff8e1;
 }
 
-.knob-group input[type="range"]::-moz-range-thumb {
-  width: 32px;
-  height: 32px;
-  background: #7a5c2e;
+.rotary-knob {
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 60px;
+  height: 60px;
+  background: #fff8e1;
   border-radius: 50%;
-  box-shadow: 0 2px 6px #bfae9e;
-  cursor: pointer;
-  border: 2px solid #fff8e1;
+  border: 3px solid #a67c3c;
+  box-shadow: 0 2px 8px #bfae9e;
+  z-index: 2;
+  transition: box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.knob-group input[type="range"]::-ms-thumb {
-  width: 32px;
-  height: 32px;
-  background: #7a5c2e;
+.rotary-knob::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 18px;
+  background: #a67c3c;
+  border-radius: 4px;
+  position: absolute;
+  top: 6px;
+  left: 26px;
+}
+
+.footswitch {
+  margin-top: 24px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  box-shadow: 0 2px 6px #bfae9e;
-  cursor: pointer;
-  border: 2px solid #fff8e1;
-}
-
-.knob-group input[type="range"]:focus {
-  outline: none;
-}
-
-button#start {
-  background: #7a5c2e;
+  background: #bbb;
+  border: 3px solid #a67c3c;
+  box-shadow: 0 4px 16px #bfae9e, 0 1px 2px #fff8e1;
   color: #fff8e1;
   font-size: 1.2em;
-  border: none;
-  border-radius: 18px;
-  padding: 12px 32px;
-  margin-top: 18px;
-  box-shadow: 0 2px 8px #bfae9e;
-  cursor: pointer;
   font-family: 'Courier New', Courier, monospace;
-  transition: background 0.2s;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  outline: none;
 }
 
-button#start:hover {
-  background: #a67c3c;
+.footswitch.on {
+  background: #4caf50;
+  color: #fff;
+  border-color: #388e3c;
 }
 
-button#start:disabled {
-  background: #4caf50 !important;
+.footswitch.off {
+  background: #bbb;
   color: #fff8e1;
-  cursor: not-allowed;
+  border-color: #a67c3c;
 }
 
 #status {
   margin-top: 18px;
-  color: #7a5c2e;
+  color: #a67c3c;
   font-size: 1em;
   min-height: 24px;
   font-family: 'Courier New', Courier, monospace;
