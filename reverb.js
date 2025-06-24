@@ -15,6 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let reverbNode = null;
   let outputNode = null;
 
+  // --- Génération d'une impulse response spring ---
+  function createSpringIR(ctx, duration = 0.8, decay = 2.5) {
+    const rate = ctx.sampleRate;
+    const length = rate * duration;
+    const ir = ctx.createBuffer(2, length, rate);
+    for (let c = 0; c < 2; c++) {
+      const channel = ir.getChannelData(c);
+      for (let i = 0; i < length; i++) {
+        // Bruit blanc amorti, oscillant (spring)
+        const t = i / rate;
+        const env = Math.pow(1 - t / duration, decay);
+        const freq = 1800 + 1200 * Math.sin(2 * Math.PI * t * 2); // oscillation ressort
+        channel[i] = (Math.random() * 2 - 1) * env * Math.sin(2 * Math.PI * freq * t);
+      }
+    }
+    return ir;
+  }
+
   // --- Dessin des graduations ---
   function drawGraduations() {
     const ctx = mixGraduations.getContext('2d');
@@ -61,9 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
       wetGain = audioContext.createGain();
       merger = audioContext.createGain();
 
-      // Reverb simple (delay court pour simuler une spring/plate)
-      reverbNode = audioContext.createDelay();
-      reverbNode.delayTime.value = 0.08; // 80ms
+      // Reverb spring (convolver avec IR générée)
+      reverbNode = audioContext.createConvolver();
+      reverbNode.buffer = createSpringIR(audioContext, 0.8, 2.5);
 
       // Routing
       sourceNode.connect(dryGain);
