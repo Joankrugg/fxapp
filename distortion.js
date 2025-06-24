@@ -84,12 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
       filter = new Tone.Filter(1000, 'lowpass'); // Tone
       vol = new Tone.Gain(0.7);
       output = Tone.Destination;
-      // Routing dynamique selon shape
       updateAudioRouting();
       await mic.open();
       statusDiv.textContent = 'Distorsion activée.';
+      isOn = true;
     } catch (e) {
       statusDiv.textContent = 'Erreur micro : ' + e.message;
+      isOn = false;
     }
   }
   function disableAudio() {
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filter) filter.dispose();
     if (vol) vol.dispose();
     mic = biasAdd = disto = cheby = filter = vol = null;
+    isOn = false;
     statusDiv.textContent = 'Distorsion désactivée.';
   }
   function updateAudioRouting() {
